@@ -1,4 +1,5 @@
 #include "Enemy.h"
+#include <iostream>
 
 Enemy::Enemy(const sf::Vector2f& pos, const int& health) : Entity(){
     setPosition(pos, shape);

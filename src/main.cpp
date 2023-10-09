@@ -5,6 +5,10 @@
 #include "Tower.h"
 #include "Enemy.h"
 
+//////////////////////////////
+// WARNING I USE MANUAL POINTERS TO GET A BETTER UNDERSTANDING OF HOW THEY WORK AND WHY THEY ARE A PAIN TO USE
+//////////////////////////////
+
 int main(void){
     sf::RenderWindow window(sf::VideoMode(500, 500), "IdleTD");
     window.setFramerateLimit(60);
@@ -45,13 +49,12 @@ int main(void){
         window.display();
     }
 
-    for (Enemy* e : enemies){ // SEG FAULT :D
+    delete T;
+
+    for (Enemy* e : enemies){
         delete e;
     }
-
     enemies.clear();
-
-    delete T;
 
     return 0;
 }

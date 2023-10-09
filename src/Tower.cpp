@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include "Entity.h"
 #include "helpers.hpp"
+#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -20,7 +21,8 @@ Tower::Tower(const sf::Vector2f& pos, const int& health, const float& radius) : 
 }
 
 Tower::~Tower(){
-    delete _closestEnemy;
+    //delete _closestEnemy; // Dont delete this pointer as the cleanup will do it when game is not running
+    _closestEnemy = nullptr;
 }
 
 sf::Shape& Tower::returnShape() {
