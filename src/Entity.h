@@ -4,10 +4,12 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 
+#include "Player.h"
+
 class Entity{
 public:
     Entity() { }
-    virtual ~Entity() = default;
+    virtual ~Entity(){ _p = nullptr; }
 
     virtual void update(const float& deltaTime) = 0;
     virtual void render(sf::RenderWindow& window) const = 0;
@@ -19,6 +21,8 @@ public:
     inline sf::Vector2f& getPosition() { return _pos; }
 
 protected:
+    Player* _p;
+
     sf::Vector2f _pos{};
 
 private:

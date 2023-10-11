@@ -2,11 +2,13 @@
 #include "Enemy.h"
 #include "Entity.h"
 #include "helpers.hpp"
+#include <SFML/System/Vector2.hpp>
+#include <cstddef>
 #include <iostream>
 #include <limits>
 #include <vector>
 
-Tower::Tower(const sf::Vector2f& pos, const int& health, const float& radius) : Entity() {
+Tower::Tower(Player* p, const sf::Vector2f& pos, const int& health, const float& radius) : Entity() {
     setPosition(pos, shape);
     setFillColor(sf::Color::Green, shape);
 
@@ -18,6 +20,12 @@ Tower::Tower(const sf::Vector2f& pos, const int& health, const float& radius) : 
     _directionLine[0].color = sf::Color::White;
     _directionLine[1].position = sf::Vector2f{50, 50};
     _directionLine[1].color = sf::Color::Red;
+
+    _p = p;
+
+    testCircle.setRadius(_range);
+    testCircle.setPosition(sf::Vector2f{_pos.x - _range, _pos.y - _range});
+    testCircle.setFillColor(sf::Color{200, 150, 0, 150});
 }
 
 Tower::~Tower(){
@@ -29,28 +37,30 @@ sf::Shape& Tower::returnShape() {
     return shape;
 }
 
-void Tower::update(const float& deltaTime){ // TEST CODE REFACTOR ASAP
-    static float cooldown;
+void Tower::update(const float& deltaTime){
+    static float coolDown{_attack};
 
-    if (_closestEnemy != nullptr){
-        _directionLine[1].position = _closestEnemy->getPosition();
-        if (cooldown <= 0){
-            _closestEnemy->damage(1);
-            cooldown = 0.5f;
+    if (_closestEnemy != nullptr && _closestEnemy->isAlive()){ // Look for better solutions
+        if (_enemyDistance <= _range && coolDown <= 0){
+            _directionLine[1].position = _closestEnemy->getPosition();
+            _closestEnemy->damage(_damage);
+            coolDown = _attack;
         }
-        else {
-            cooldown -= 4 * deltaTime;
-        }
+        else if (_range < _enemyDistance && _directionLine[1].position != getCenter())
+            _directionLine[1].position = getCenter();
+        else if (coolDown > 0)
+            coolDown -= deltaTime;
     }
-    else{
+    else
         _directionLine[1].position = getCenter();
-    }
 }
 
 void Tower::render(sf::RenderWindow& window) const {
     window.draw(shape);
 
     window.draw(_directionLine, 2, sf::Lines);
+
+    window.draw(testCircle);
 }
 
 void Tower::getClosestEnemy(const std::vector<Enemy*>& entities){
@@ -63,6 +73,40 @@ void Tower::getClosestEnemy(const std::vector<Enemy*>& entities){
         if (distance < currentClosest){
             currentClosest = distance;
             _closestEnemy = e;
+            _enemyDistance = distance;
         }
     }
+}
+
+void Tower::upgradeAttackSpeed(){
+    if (calculatePrice(_attackUpgrade, _attackPrice))
+        _attack -= 0.1;
+}
+
+void Tower::upgradeDamage(){
+    if (calculatePrice(_damageUpgrade, _damagePrice))
+        _damage++;
+}
+
+void Tower::upgradeRange(){
+    if (calculatePrice(_rangeUpgrade, _rangePrice))
+        _range += 5;
+
+
+    testCircle.setRadius(_range);
+    testCircle.setPosition(sf::Vector2f{_pos.x - _range, _pos.y - _range});
+}
+
+// PRIVATE
+
+bool Tower::calculatePrice(unsigned short& upgrade, float& upgradePrice){
+    if (_p->getMoney() >= upgradePrice){
+        upgrade++;
+        _p->subMoney(upgradePrice);
+        upgradePrice += 0.05f * upgrade * 2 + 0 * upgrade + 0; // f(x) = ax² + bx + c
+
+        return true;
+    }
+
+    return false;
 }
